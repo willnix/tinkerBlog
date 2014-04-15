@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/go-martini/martini"
+	"github.com/martini-contrib/auth"
+	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 	"html/template"
 	"labix.org/v2/mgo"
@@ -25,6 +27,10 @@ func Mongo() martini.Handler {
 }
 
 func main() {
+	// BasicAuth credentials for admin functions
+	username := "user"
+	password := "password"
+
 	m := martini.Classic()
 
 	//needs import ("time")
@@ -52,6 +58,8 @@ func main() {
 
 	// Setup routing
 	m.Get("/", BlogEntryList)
+	m.Post("/blog/add/submit", auth.Basic(username, password), binding.Form(dbBlogEntry{}), addBlogEntrySubmit)
+	m.Get("/blog/add", auth.Basic(username, password), addBlogEntry)
 	m.Get("/post/:Id", BlogEntry)
 	m.Get("/about", About)
 	m.Get("/impressum", Impressum)

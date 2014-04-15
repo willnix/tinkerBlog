@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/russross/blackfriday"
@@ -13,12 +14,12 @@ import (
 // struct for dbquery results
 // mgo requires the string literal tags
 type dbBlogEntry struct {
-	ObjId   bson.ObjectId "_id,omitempty"
-	Id      int           "id"
-	Title   string        "title"
-	Author  string        "author"
-	Text    string        "text"
-	Written time.Time     "written"
+	ObjId   bson.ObjectId `_id,omitempty`
+	Id      int           `form:"id"`
+	Title   string        `form:"title"`
+	Author  string        `form:"author"`
+	Text    string        `form:"text"`
+	Written time.Time     `form:"written"`
 }
 
 func BlogEntryList(ren render.Render, db *mgo.Database) {
@@ -29,7 +30,7 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 	db.C("blogEntries").Find(nil).Sort("-id").All(&results)
 
 	for i, _ := range results {
-		results[i].Text = string(blackfriday.MarkdownBasic([]byte(results[i].Text)))
+		results[i].Text = string(blackfriday.MarkdownCommon([]byte(results[i].Text)))
 	}
 
 	// render the template using the results from the db
@@ -44,10 +45,25 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	// Find Blogentry by Id (should be only one)
 	db.C("blogEntries").Find(bson.M{"id": Id}).One(&result)
 
-	result.Text = string(blackfriday.MarkdownBasic([]byte(result.Text)))
+	fmt.Println(string(blackfriday.MarkdownCommon([]byte(result.Text))))
+
+	result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
 
 	// render the template using the result from the db
 	ren.HTML(200, "blogEntry", result)
+}
+
+func addBlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
+	blogEntry.Written = time.Now()
+
+	db.C("blogEntries").Insert(blogEntry)
+
+	// render the template using the result from the db
+	ren.HTML(200, "addBlogEntry", nil)
+}
+
+func addBlogEntry(ren render.Render) {
+	ren.HTML(200, "addBlogEntry", nil)
 }
 
 func About(ren render.Render) {
