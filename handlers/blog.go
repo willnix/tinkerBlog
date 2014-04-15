@@ -3,6 +3,7 @@ package blog
 import (
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
+	"github.com/russross/blackfriday"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strconv"
@@ -27,6 +28,10 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 	// (sorted descending according to id)
 	db.C("blogEntries").Find(nil).Sort("-id").All(&results)
 
+	for i, _ := range results {
+		results[i].Text = string(blackfriday.MarkdownBasic([]byte(results[i].Text)))
+	}
+
 	// render the template using the results from the db
 	ren.HTML(200, "blogEntryList", results)
 }
@@ -38,6 +43,8 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 
 	// Find Blogentry by Id (should be only one)
 	db.C("blogEntries").Find(bson.M{"id": Id}).One(&result)
+
+	result.Text = string(blackfriday.MarkdownBasic([]byte(result.Text)))
 
 	// render the template using the result from the db
 	ren.HTML(200, "blogEntry", result)

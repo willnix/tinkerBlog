@@ -11,7 +11,6 @@
 	<title>tinkerfool:blog</title>
 	<meta name="description" content="Tinkerfool">
 	<meta name="author" content="Frieder Steinmetz">
-	<meta property="twitter:account_id" content="1337" />
 	
 	<!--[if lt IE 9]>
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -23,44 +22,41 @@
 
 	<!-- CSS
   ================================================== -->
-	<link rel="stylesheet" href="css/stylesheets/base.css">
-	<link rel="stylesheet" href="css/skeleton.css">
-	<link rel="stylesheet" href="css/layout.css">
-	<link rel="stylesheet" href="css/docs.css">
+	<link rel="stylesheet" href="//tinkerfool.org/css/base.css">
+	<link rel="stylesheet" href="//tinkerfool.org/css/skeleton.css">
+	<link rel="stylesheet" href="//tinkerfool.org/css/layout.css">
 
 	<!-- Favicon
 	================================================== -->
-	<link rel="shortcut icon" href="img/favicon.ico">
-	<link rel="apple-touch-icon" sizes="57x57" href="img/apple-touch-icon.png">
-	<link rel="apple-touch-icon" sizes="72x72" href="img/apple-touch-icon-72x72.png">
-	<link rel="apple-touch-icon" sizes="114x114" href="img/apple-touch-icon-114x114.png">
+	<link rel="shortcut icon" href="//tinkerfool.org/img/favicon.ico">
+	<link rel="apple-touch-icon" sizes="57x57" href="//tinkerfool.org/img/apple-touch-icon.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="//tinkerfool.org/img/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="//tinkerfool.org/img/apple-touch-icon-114x114.png">
 
 </head>
 
 <body>
-<div id="header" class="container" style="padding-top: 0px; padding-bottom: 30px">
+<div id="header" class="container">
 	<div class="ten offset-by-two columns"><h1>.tinkerfool</h1></div>
 </div>
 <!-- end container -->
 
-<div id="menu" class="container" style="padding-top: 0px;">
-	<div class="ten offset-by-two columns" style="border-top: 1px solid; border-bottom: 1px solid; border-color: #AAAAAA;">
-		<ul class="menu" style="margin-bottom: 0px;">
-			<li class="blogpost-title" style="display: inline; padding: 0px 60px 0px 0px;">
-				<h4 style="display: inline;"><a href="/" style="text-decoration: none;">Home</a></h4>
+<div id="menu" class="container">
+	<div class="ten offset-by-two columns">
+		<ul class="menu">
+			<li id="firstmenuelement">
+				<h4><a href="/">Home</a></h4>
 			</li>
-			<li style="display: inline; padding: 0px 60px 0px 0px;">
-				<h4 style="display: inline;"><a href="/about" style="text-decoration: none;">About</a></h4>
+			<li id="secondmenuelement">
+				<h4><a href="/about">About</a></h4>
 			</li>
 		</ul>
 	</div>
 </div>
 <!-- end container -->
 
-<div id="blogposts" class="container" style="padding: 0px;">
-<div class="twelve offset-by-two columns">
+<div id="blogposts" class="container">
   {{yield}}
- </div>
 </div>
 <!-- end container -->
 

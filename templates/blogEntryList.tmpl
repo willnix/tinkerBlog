@@ -1,17 +1,19 @@
  {{ range . }}
-<div id="blogpost-{{.Id}}" class="container" style="padding-top: 30px;">
-  <div id="blogpost-header-{{.Id}}" class="container" style="padding-top: 0px;">
-    <ul>
-    <li class="blogpost-title">
-      <h3><a class="blogpost-title" href="/post/{{.Id}}" style="text-decoration: none;">{{.Title}}</a></h3>
-    </li>
-    <li>
-        <small>{{.Written | formatTime}}</small>
-    </li>
-    </ul>
-  </div>
-  <div id="blogpost-body-{{.Id}}" class="post-body">
-    {{.Text | unescaped}}
+ <div class="blogpost ten columns offset-by-two">
+  <div id="blogpost-{{.Id}}" class="nine columns omega blogpost-content">
+    <div id="blogpost-header-{{.Id}}" class="blogpost-header">
+      <ul>
+      <li class="blogpost-title">
+        <h3><a class="blogpost-title" href="/post/{{.Id}}">{{.Title}}</a></h3>
+      </li>
+      <li>
+          <small>{{.Written | formatTime}}</small>
+      </li>
+      </ul>
+    </div>
+    <div id="blogpost-body-{{.Id}}" class="blogpost-body">
+      {{.Text | unescaped}}
+    </div>
   </div>
 </div>
 {{ end }}

@@ -1,0 +1,133 @@
+/*
+* Skeleton V1.2
+* Copyright 2011, Dave Gamache
+* www.getskeleton.com
+* Free to use under the MIT license.
+* http://www.opensource.org/licenses/mit-license.php
+* 6/20/2012
+*/
+
+/* Table of Content
+==================================================
+	#Site Styles
+	#Page Styles
+	#Media Queries
+	#Font-Face */
+
+/* #Site Styles
+================================================== */
+body {
+	overflow-y: scroll;
+}
+
+div#blogposts {
+	margin-top: 30px;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a {
+	text-decoration: none;
+}
+
+div.container#header {
+	padding-top: 0px;
+	padding-bottom: 30px;
+}
+
+div.container#footer {
+	padding: 60px;
+}
+
+div.container#menu {
+	padding-top: 0px;
+}
+
+ul.menu {
+	border-top: 1px solid;
+	border-bottom: 1px solid;
+	border-color: #AAAAAA;
+}
+
+ul.menu {
+	margin-bottom: 0px;
+}
+
+ul.menu h4 {
+	 display: inline;
+}
+
+li#firstmenuelement {
+	display: inline;
+	padding: 0px 60px 0px 0px;
+}
+
+li#secondmenuelement {
+	display: inline;
+	padding: 0px 0px 0px 60px;
+}
+
+li.blogpost-title {
+	padding-bottom: 0px;
+}
+
+
+/* #Page Styles
+================================================== */
+div.blogpost {
+	padding-bottom: 30px;
+}
+
+div.blogpost-header {
+	border-left: 1px solid;
+	border-left-color: #DDDDDD;
+	padding-left: 20px;
+	margin-bottom: -20px;
+}
+
+div.blogpost-body {
+	padding-top: 4px;
+	border-left: 1px solid;
+	border-left-color: #DDDDDD;
+	padding-left: 20px;
+	text-align: justify;
+}
+
+div.blogpost-content.columns {
+	margin-left: 0px;
+}
+
+/* #Media Queries
+================================================== */
+
+	/* Smaller than standard 960 (devices and browsers) */
+	@media only screen and (max-width: 959px) {}
+
+	/* Tablet Portrait size to standard 960 (devices and browsers) */
+	@media only screen and (min-width: 768px) and (max-width: 959px) {}
+
+	/* All Mobile Sizes (devices and browser) */
+	@media only screen and (max-width: 767px) {}
+
+	/* Mobile Landscape Size to Tablet Portrait (devices and browsers) */
+	@media only screen and (min-width: 480px) and (max-width: 767px) {}
+
+	/* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
+	@media only screen and (max-width: 479px) {}
+
+
+/* #Font-Face
+================================================== */
+/* 	This is the proper syntax for an @font-face file
+		Just create a "fonts" folder at the root,
+		copy your FontName into code below and remove
+		comment brackets */
+
+/*	@font-face {
+	    font-family: 'FontName';
+	    src: url('../fonts/FontName.eot');
+	    src: url('../fonts/FontName.eot?iefix') format('eot'),
+	         url('../fonts/FontName.woff') format('woff'),
+	         url('../fonts/FontName.ttf') format('truetype'),
+	         url('../fonts/FontName.svg#webfontZam02nTh') format('svg');
+	    font-weight: normal;
+	    font-style: normal; }
+*/
