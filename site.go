@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
-	"github.com/willnix/blog/handlers"
 	"html/template"
 	"labix.org/v2/mgo"
 	"time"
@@ -52,10 +51,10 @@ func main() {
 	m.Use(martini.Static("assets"))
 
 	// Setup routing
-	m.Get("/", blog.BlogEntryList)
-	m.Get("/post/:Id", blog.BlogEntry)
-	m.Get("/about", blog.About)
-	m.Get("/impressum", blog.Impressum)
+	m.Get("/", BlogEntryList)
+	m.Get("/post/:Id", BlogEntry)
+	m.Get("/about", About)
+	m.Get("/impressum", Impressum)
 
 	m.Run()
 }
