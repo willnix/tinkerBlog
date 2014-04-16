@@ -46,7 +46,7 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	var result dbBlogEntry
 
 	// Find Blogentry by Id (should be only one)
-	err = db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
+	err := db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
 	if err != nil {
 		ren.JSON(500, err)
 	}
