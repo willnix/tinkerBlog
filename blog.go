@@ -24,7 +24,10 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 
 	// Load all Blogentries in the results slice
 	// (sorted descending according to id)
-	db.C("blogEntries").Find(nil).Sort("-written").All(&results)
+	err := db.C(dbCollectionEntries).Find(nil).Sort("-id").All(&results)
+	if err != nil {
+		ren.JSON(500, err)
+	}
 
 	for i, _ := range results {
 		results[i].Text = string(blackfriday.MarkdownCommon([]byte(results[i].Text)))
@@ -36,30 +39,30 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 
 func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	// validate the post id
-	if bson.IsObjectIdHex(args["Id"]) {
-		entryId := bson.ObjectIdHex(args["Id"])
-
-		var result dbBlogEntry
-
-		// Find Blogentry by Id (should be only one)
-		db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
-
-		result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
-
-		// render the template using the result from the db
-		ren.HTML(200, "blogEntry", result)
-
-	} else {
-		// invalid post id
+	if !bson.IsObjectIdHex(args["Id"]) {
 		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
 	}
+	entryId := bson.ObjectIdHex(args["Id"])
+	var result dbBlogEntry
 
+	// Find Blogentry by Id (should be only one)
+	err = db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
+	if err != nil {
+		ren.JSON(500, err)
+	}
+	result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
+
+	// render the template using the result from the db
+	ren.HTML(200, "blogEntry", result)
 }
 
 func addBlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
 	blogEntry.Written = time.Now()
 
-	db.C("blogEntries").Insert(blogEntry)
+	err := db.C(dbCollectionEntries).Insert(blogEntry)
+	if err != nil {
+		ren.JSON(500, err)
+	}
 
 	// render the template using the result from the db
 	ren.HTML(200, "addBlogEntry", nil)
