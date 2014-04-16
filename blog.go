@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/russross/blackfriday"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"strconv"
 	"time"
 )
 
@@ -15,7 +13,6 @@ import (
 // mgo requires the string literal tags
 type dbBlogEntry struct {
 	ObjId   bson.ObjectId `_id,omitempty`
-	Id      int           `form:"id"`
 	Title   string        `form:"title"`
 	Author  string        `form:"author"`
 	Text    string        `form:"text"`
@@ -27,7 +24,7 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 
 	// Load all Blogentries in the results slice
 	// (sorted descending according to id)
-	db.C("blogEntries").Find(nil).Sort("-id").All(&results)
+	db.C("blogEntries").Find(nil).Sort("-written").All(&results)
 
 	for i, _ := range results {
 		results[i].Text = string(blackfriday.MarkdownCommon([]byte(results[i].Text)))
@@ -38,19 +35,25 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 }
 
 func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
-	var result dbBlogEntry
+	// validate the post id
+	if bson.IsObjectIdHex(args["Id"]) {
+		entryId := bson.ObjectIdHex(args["Id"])
 
-	Id, _ := strconv.Atoi(args["Id"])
+		var result dbBlogEntry
 
-	// Find Blogentry by Id (should be only one)
-	db.C("blogEntries").Find(bson.M{"id": Id}).One(&result)
+		// Find Blogentry by Id (should be only one)
+		db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
 
-	fmt.Println(string(blackfriday.MarkdownCommon([]byte(result.Text))))
+		result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
 
-	result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
+		// render the template using the result from the db
+		ren.HTML(200, "blogEntry", result)
 
-	// render the template using the result from the db
-	ren.HTML(200, "blogEntry", result)
+	} else {
+		// invalid post id
+		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
+	}
+
 }
 
 func addBlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
