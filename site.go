@@ -7,6 +7,7 @@ import (
 	"github.com/martini-contrib/render"
 	"html/template"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func Mongo() martini.Handler {
 
 func main() {
 	// BasicAuth credentials for admin functions
-	username := "user"
+	username := "username"
 	password := "password"
 
 	m := martini.Classic()
@@ -42,6 +43,10 @@ func main() {
 				"formatTime": func(args ...interface{}) string {
 					t1 := time.Time(args[0].(time.Time))
 					return t1.Format("Jan 2, 2006 at 3:04pm (MST)")
+				},
+				"formatId": func(args ...interface{}) string {
+					id := args[0].(bson.ObjectId)
+					return id.Hex()
 				},
 				"unescaped": func(args ...interface{}) template.HTML {
 					return template.HTML(args[0].(string))
