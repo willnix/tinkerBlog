@@ -2,35 +2,18 @@ package main
 
 import (
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/auth"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
+
 	"html/template"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
 
-// Middleware handler for mongodb
-func Mongo() martini.Handler {
-	session, err := mgo.Dial("localhost/blog")
-	if err != nil {
-		panic(err)
-	}
-
-	return func(c martini.Context) {
-		reqSession := session.Clone()
-		c.Map(reqSession.DB("blog"))
-		defer reqSession.Close()
-
-		c.Next()
-	}
-}
-
 func main() {
-	// BasicAuth credentials for admin functions
-	username := "username"
-	password := "password"
+	store := sessions.NewCookieStore([]byte("BestSecretEvvaaaarr!!!"))
 
 	m := martini.Classic()
 
@@ -55,6 +38,14 @@ func main() {
 		},
 	}))
 
+	store.Options(sessions.Options{
+		MaxAge: 0,
+	})
+	m.Use(sessions.Sessions("blogSession", store))
+	m.Use(sessionauth.SessionUser(GenerateAnonymousUser))
+	sessionauth.RedirectUrl = "/new-login"
+	sessionauth.RedirectParam = "new-next"
+
 	// Middleware for mongodb connection
 	m.Use(Mongo())
 
@@ -63,11 +54,24 @@ func main() {
 
 	// Setup routing
 	m.Get("/", BlogEntryList)
-	m.Post("/blog/add/submit", auth.Basic(username, password), binding.Form(dbBlogEntry{}), addBlogEntrySubmit)
-	m.Get("/blog/add", auth.Basic(username, password), addBlogEntry)
 	m.Get("/post/:Id", BlogEntry)
 	m.Get("/about", About)
 	m.Get("/impressum", Impressum)
+
+	// login stuff
+	m.Get("/blog/add", sessionauth.LoginRequired, addBlogEntry)
+	m.Post("/blog/add/submit", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), addBlogEntrySubmit)
+
+	m.Get("/new-login", func(r render.Render) {
+		r.HTML(200, "login", nil)
+	})
+
+	m.Post("/new-login", binding.Bind(UserModel{}), ValidateLogin)
+
+	m.Get("/logout", sessionauth.LoginRequired, func(session sessions.Session, user sessionauth.User, r render.Render) {
+		sessionauth.Logout(session, user)
+		r.Redirect("/")
+	})
 
 	m.Run()
 }
