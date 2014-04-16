@@ -24,7 +24,7 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 
 	// Load all Blogentries in the results slice
 	// (sorted descending according to id)
-	err := db.C(dbCollectionEntries).Find(nil).Sort("-id").All(&results)
+	err := db.C(dbCollectionEntries).Find(nil).Sort("-written").All(&results)
 	if err != nil {
 		ren.JSON(500, err)
 	}
