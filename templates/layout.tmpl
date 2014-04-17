@@ -38,6 +38,12 @@
 <body>
 <div id="header" class="container">
 	<div class="ten offset-by-two columns"><h1>.tinkerfool</h1></div>
+	{{if eq isUserAuthed true}}
+		<div>
+			<h4>Hi Admin</h4>
+			<a href="/logout">Logout</a>
+		</div>
+	{{end}}
 </div>
 <!-- end container -->
 
