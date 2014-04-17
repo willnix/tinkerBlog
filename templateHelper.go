@@ -1,14 +1,13 @@
 package main
 
 import (
-	"html/template"
-	"time"
-
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
+	"html/template"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
 
 // hacky solution to get session data during template evaluation

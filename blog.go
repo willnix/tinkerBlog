@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
@@ -66,17 +65,22 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 }
 
 // Submit new or update existing blog entry
-func BlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
+func BlogEntrySubmit(user sessionauth.User, blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
 	blogEntry.Written = time.Now()
 	// validate the post id
 	if !bson.IsObjectIdHex(blogEntry.Id) {
 		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
+		return
 	}
 	blogEntry.ObjId = bson.ObjectIdHex(blogEntry.Id)
 
+	// Set author to session user
+	var userData UserModel
+	userData.GetById(user.UniqueId())
+	blogEntry.Author = userData.Username
+
 	_, err := db.C(dbCollectionEntries).Upsert(bson.M{"_id": blogEntry.ObjId}, blogEntry)
 	if err != nil {
-		fmt.Println(blogEntry.ObjId.String())
 		ren.JSON(500, err)
 		return
 	}
@@ -103,8 +107,8 @@ func EditBlogEntryForm(ren render.Render, db *mgo.Database, args martini.Params)
 	err := db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
 	if err != nil {
 		ren.JSON(500, err)
+		return
 	}
-	fmt.Println(result)
 
 	// render the template using the result from the db
 	ren.HTML(200, "editBlogEntry", result)
