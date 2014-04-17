@@ -49,6 +49,8 @@ func main() {
 	m.Get("/blog/edit/:Id", sessionauth.LoginRequired, EditBlogEntryForm)
 	m.Post("/blog/edit", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), BlogEntrySubmit)
 
+	m.Get("/blog/delete/:Id", sessionauth.LoginRequired, DeleteBlogEntry)
+
 	m.Get("/new-login", LoginForm)
 
 	m.Post("/new-login", binding.Bind(UserModel{}), ValidateLogin)

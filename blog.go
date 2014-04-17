@@ -66,13 +66,16 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 
 // Submit new or update existing blog entry
 func BlogEntrySubmit(user sessionauth.User, blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
-	blogEntry.Written = time.Now()
-	// validate the post id
-	if !bson.IsObjectIdHex(blogEntry.Id) {
-		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
-		return
+	// if we have a valid ObjId we assume it's an update
+	if bson.IsObjectIdHex(blogEntry.Id) {
+		blogEntry.ObjId = bson.ObjectIdHex(blogEntry.Id)
+	} else {
+		// no valid ObjId, so we assume it's a new post
+		// and generate a new one
+		blogEntry.ObjId = bson.NewObjectId()
 	}
-	blogEntry.ObjId = bson.ObjectIdHex(blogEntry.Id)
+	// set creation datetime
+	blogEntry.Written = time.Now()
 
 	// Set author to session user
 	var userData UserModel
@@ -112,6 +115,24 @@ func EditBlogEntryForm(ren render.Render, db *mgo.Database, args martini.Params)
 
 	// render the template using the result from the db
 	ren.HTML(200, "editBlogEntry", result)
+}
+
+// Display prefilled form to edit existing blog entry
+func DeleteBlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
+	// validate the post id
+	if !bson.IsObjectIdHex(args["Id"]) {
+		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
+	}
+	entryId := bson.ObjectIdHex(args["Id"])
+
+	// Delete entry
+	err := db.C("blogEntries").Remove(bson.M{"_id": entryId})
+	if err != nil {
+		ren.JSON(500, err)
+		return
+	}
+
+	ren.Redirect("/")
 }
 
 func LoginForm(ren render.Render) {
