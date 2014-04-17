@@ -27,6 +27,7 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 	err := db.C(dbCollectionEntries).Find(nil).Sort("-written").All(&results)
 	if err != nil {
 		ren.JSON(500, err)
+		return
 	}
 
 	for i, _ := range results {
@@ -41,6 +42,7 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	// validate the post id
 	if !bson.IsObjectIdHex(args["Id"]) {
 		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
+		return
 	}
 	entryId := bson.ObjectIdHex(args["Id"])
 	var result dbBlogEntry
@@ -49,6 +51,7 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	err := db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
 	if err != nil {
 		ren.JSON(500, err)
+		return
 	}
 	result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
 
@@ -62,6 +65,7 @@ func addBlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Databa
 	err := db.C(dbCollectionEntries).Insert(blogEntry)
 	if err != nil {
 		ren.JSON(500, err)
+		return
 	}
 
 	// render the template using the result from the db
