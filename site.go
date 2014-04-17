@@ -1,15 +1,13 @@
 package main
 
 import (
+	"html/template"
+
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
-
-	"html/template"
-	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 func main() {
@@ -17,27 +15,7 @@ func main() {
 
 	m := martini.Classic()
 
-	//needs import ("time")
-	m.Use(render.Renderer(render.Options{
-		Directory: "templates",
-		Layout:    "layout",
-		Funcs: []template.FuncMap{
-			{
-				"formatTime": func(args ...interface{}) string {
-					t1 := time.Time(args[0].(time.Time))
-					return t1.Format("Jan 2, 2006 at 3:04pm (MST)")
-				},
-				"formatId": func(args ...interface{}) string {
-					id := args[0].(bson.ObjectId)
-					return id.Hex()
-				},
-				"unescaped": func(args ...interface{}) template.HTML {
-					return template.HTML(args[0].(string))
-				},
-			},
-		},
-	}))
-
+	// inject sessions first if we want it in the templates
 	store.Options(sessions.Options{
 		MaxAge: 0,
 	})
@@ -45,6 +23,13 @@ func main() {
 	m.Use(sessionauth.SessionUser(GenerateAnonymousUser))
 	sessionauth.RedirectUrl = "/new-login"
 	sessionauth.RedirectParam = "new-next"
+
+	m.Use(render.Renderer(render.Options{
+		Directory: "templates",
+		Layout:    "layout",
+		Funcs:     []template.FuncMap{templateFuncs},
+	}))
+	m.Use(HelperFuncs())
 
 	// Middleware for mongodb connection
 	m.Use(Mongo())
