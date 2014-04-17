@@ -5,7 +5,7 @@
         <h3><a class="blogpost-title" href="/post/{{.ObjId | formatId}}">{{.Title}}</a></h3>
       </li>
       <li>
-          <small>{{.Written | formatTime}} by {{.Author}}</small>
+          <small>{{.Written | formatTime}} by {{.Author}}{{if eq isUserAuthed true}} - <a href="/blog/edit/{{.ObjId | formatId}}">EDIT</a>{{end}}</small>
       </li>
       </ul>
     </div>
