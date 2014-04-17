@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
 	"github.com/russross/blackfriday"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -12,13 +15,15 @@ import (
 // struct for dbquery results
 // mgo requires the string literal tags
 type dbBlogEntry struct {
-	ObjId   bson.ObjectId `_id,omitempty`
-	Title   string        `form:"title"`
-	Author  string        `form:"author"`
-	Text    string        `form:"text"`
-	Written time.Time     `form:"written"`
+	ObjId   bson.ObjectId `bson:"_id,omitempty" form:"-"`
+	Id      string        `bson:"-" form:"id"`
+	Title   string        `bson:"title" form:"title"`
+	Author  string        `bson:"author" form:"author"`
+	Text    string        `bson:"text" form:"text"`
+	Written time.Time     `bson:"written" form:"written"`
 }
 
+// List all blog entries
 func BlogEntryList(ren render.Render, db *mgo.Database) {
 	var results []dbBlogEntry
 
@@ -37,6 +42,7 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 	ren.HTML(200, "blogEntryList", results)
 }
 
+// Show single blog entry
 func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	// validate the post id
 	if !bson.IsObjectIdHex(args["Id"]) {
@@ -56,11 +62,18 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	ren.HTML(200, "blogEntry", result)
 }
 
-func addBlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
+// Submit new or update existing blog entry
+func BlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Database) {
 	blogEntry.Written = time.Now()
+	// validate the post id
+	if !bson.IsObjectIdHex(blogEntry.Id) {
+		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
+	}
+	blogEntry.ObjId = bson.ObjectIdHex(blogEntry.Id)
 
-	err := db.C(dbCollectionEntries).Insert(blogEntry)
+	_, err := db.C(dbCollectionEntries).Upsert(bson.M{"_id": blogEntry.ObjId}, blogEntry)
 	if err != nil {
+		fmt.Println(blogEntry.ObjId.String())
 		ren.JSON(500, err)
 	}
 
@@ -68,8 +81,38 @@ func addBlogEntrySubmit(blogEntry dbBlogEntry, ren render.Render, db *mgo.Databa
 	ren.HTML(200, "addBlogEntry", nil)
 }
 
-func addBlogEntry(ren render.Render) {
+// Display empty form to write new blog entry
+func AddBlogEntryForm(ren render.Render) {
 	ren.HTML(200, "addBlogEntry", nil)
+}
+
+// Display prefilled form to edit existing blog entry
+func EditBlogEntryForm(ren render.Render, db *mgo.Database, args martini.Params) {
+	// validate the post id
+	if !bson.IsObjectIdHex(args["Id"]) {
+		ren.Data(400, []byte("Your request was bad and you should feeld bad!"))
+	}
+	entryId := bson.ObjectIdHex(args["Id"])
+	var result dbBlogEntry
+
+	// Find Blogentry by Id (should be only one)
+	err := db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
+	if err != nil {
+		ren.JSON(500, err)
+	}
+	fmt.Println(result)
+
+	// render the template using the result from the db
+	ren.HTML(200, "editBlogEntry", result)
+}
+
+func LoginForm(ren render.Render) {
+	ren.HTML(200, "login", nil)
+}
+
+func Logout(session sessions.Session, user sessionauth.User, ren render.Render) {
+	sessionauth.Logout(session, user)
+	ren.Redirect("/")
 }
 
 func About(ren render.Render) {

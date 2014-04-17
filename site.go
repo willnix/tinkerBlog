@@ -17,7 +17,8 @@ func main() {
 
 	m := martini.Classic()
 
-	//needs import ("time")
+	// Setup Renderer with some format functions for time.Time,
+	// bson.ObjId and unescaped HTML
 	m.Use(render.Renderer(render.Options{
 		Directory: "templates",
 		Layout:    "layout",
@@ -38,6 +39,7 @@ func main() {
 		},
 	}))
 
+	// Setup session auth
 	store.Options(sessions.Options{
 		MaxAge: 0,
 	})
@@ -59,19 +61,17 @@ func main() {
 	m.Get("/impressum", Impressum)
 
 	// login stuff
-	m.Get("/blog/add", sessionauth.LoginRequired, addBlogEntry)
-	m.Post("/blog/add/submit", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), addBlogEntrySubmit)
+	m.Get("/blog/add", sessionauth.LoginRequired, AddBlogEntryForm)
+	m.Post("/blog/add", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), BlogEntrySubmit)
 
-	m.Get("/new-login", func(r render.Render) {
-		r.HTML(200, "login", nil)
-	})
+	m.Get("/blog/edit/:Id", sessionauth.LoginRequired, EditBlogEntryForm)
+	m.Post("/blog/edit", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), BlogEntrySubmit)
+
+	m.Get("/new-login", LoginForm)
 
 	m.Post("/new-login", binding.Bind(UserModel{}), ValidateLogin)
 
-	m.Get("/logout", sessionauth.LoginRequired, func(session sessions.Session, user sessionauth.User, r render.Render) {
-		sessionauth.Logout(session, user)
-		r.Redirect("/")
-	})
+	m.Get("/logout", sessionauth.LoginRequired, Logout)
 
 	m.Run()
 }
