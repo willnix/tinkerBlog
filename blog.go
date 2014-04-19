@@ -5,7 +5,7 @@ import (
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
-	"github.com/russross/blackfriday"
+	"github.com/willnix/blackfriday"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
@@ -58,6 +58,7 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 		ren.JSON(500, err)
 		return
 	}
+
 	result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
 
 	// render the template using the result from the db

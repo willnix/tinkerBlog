@@ -69,6 +69,14 @@ li.blogpost-title {
 	padding-bottom: 0px;
 }
 
+table, td, th {
+	padding: 4px;
+	border: 1px solid #DDDDDD;
+}
+
+thead {
+	border-bottom: 2px solid #888888;
+}
 
 /* #Page Styles
 ================================================== */
