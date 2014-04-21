@@ -72,15 +72,29 @@ func BlogEntrySubmit(user sessionauth.User, blogEntry dbBlogEntry, ren render.Re
 		// no valid ObjId, so we assume it's a new post
 		// and generate a new one
 		blogEntry.ObjId = bson.NewObjectId()
+		// set creation datetime
+		blogEntry.Written = time.Now()
+		// Set author to session user
+		var userData UserModel
+		userData.GetById(user.UniqueId())
+		blogEntry.Author = userData.Username
 	}
-	// Set author to session user
-	var userData UserModel
-	userData.GetById(user.UniqueId())
-	blogEntry.Author = userData.Username
-	// set creation datetime
-	blogEntry.Written = time.Now()
 
-	_, err := db.C(dbCollectionEntries).UpsertId(blogEntry.ObjId, blogEntry)
+	// building the update bson manually is necessery because mgo/bson irgnores
+	// the "ommitempty" tag and we don't want to update timestamp and username.
+	// this requires MongoDB 2.4!
+	_, err := db.C(dbCollectionEntries).UpsertId(blogEntry.ObjId, bson.M{
+		"$setOnInsert": bson.M{
+			"_id":     blogEntry.ObjId,
+			"author":  blogEntry.Author,
+			"written": blogEntry.Written,
+		},
+		"$set": bson.M{
+			"text":  blogEntry.Text,
+			"title": blogEntry.Title,
+		},
+	})
+
 	if err != nil {
 		ren.JSON(500, err)
 		return
