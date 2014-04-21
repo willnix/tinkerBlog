@@ -5,7 +5,7 @@ import (
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
-	"github.com/willnix/blackfriday"
+	"github.com/russross/blackfriday"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
