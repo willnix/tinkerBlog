@@ -42,8 +42,9 @@ func main() {
 	m.Get("/about", About)
 	m.Get("/impressum", Impressum)
 
-	// login stuff
+	// using sessionauth middleware when necessary
 	m.Get("/blog/add", sessionauth.LoginRequired, AddBlogEntryForm)
+	// binding conveniently parses posted form data into a struct
 	m.Post("/blog/add", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), BlogEntrySubmit)
 
 	m.Get("/blog/edit/:Id", sessionauth.LoginRequired, EditBlogEntryForm)

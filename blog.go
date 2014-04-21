@@ -17,9 +17,9 @@ type dbBlogEntry struct {
 	ObjId   bson.ObjectId `bson:"_id,omitempty" form:"-"`
 	Id      string        `bson:"-" form:"id"`
 	Title   string        `bson:"title" form:"title"`
-	Author  string        `bson:"author" form:"author"`
+	Author  string        `bson:"author,omitempty" form:"-"`
 	Text    string        `bson:"text" form:"text"`
-	Written time.Time     `bson:"written" form:"written"`
+	Written time.Time     `bson:"written,omitempty" form:"-"`
 }
 
 // List all blog entries
@@ -27,8 +27,8 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 	var results []dbBlogEntry
 
 	// Load all Blogentries in the results slice
-	// (sorted descending according to id)
-	err := db.C(dbCollectionEntries).Find(nil).Sort("-written").All(&results)
+	// (sorted descending by date)
+	err := db.C(dbCollectionEntries).Find(nil).Sort("-_written").All(&results)
 	if err != nil {
 		ren.JSON(500, err)
 		return
@@ -38,7 +38,6 @@ func BlogEntryList(ren render.Render, db *mgo.Database) {
 		results[i].Text = string(blackfriday.MarkdownCommon([]byte(results[i].Text)))
 	}
 
-	// render the template using the results from the db
 	ren.HTML(200, "blogEntryList", results)
 }
 
@@ -52,7 +51,7 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	entryId := bson.ObjectIdHex(args["Id"])
 	var result dbBlogEntry
 
-	// Find Blogentry by Id (should be only one)
+	// Find Blogentry by Id
 	err := db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
 	if err != nil {
 		ren.JSON(500, err)
@@ -61,7 +60,6 @@ func BlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 
 	result.Text = string(blackfriday.MarkdownCommon([]byte(result.Text)))
 
-	// render the template using the result from the db
 	ren.HTML(200, "blogEntry", result)
 }
 
@@ -75,22 +73,21 @@ func BlogEntrySubmit(user sessionauth.User, blogEntry dbBlogEntry, ren render.Re
 		// and generate a new one
 		blogEntry.ObjId = bson.NewObjectId()
 	}
-	// set creation datetime
-	blogEntry.Written = time.Now()
-
 	// Set author to session user
 	var userData UserModel
 	userData.GetById(user.UniqueId())
 	blogEntry.Author = userData.Username
+	// set creation datetime
+	blogEntry.Written = time.Now()
 
-	_, err := db.C(dbCollectionEntries).Upsert(bson.M{"_id": blogEntry.ObjId}, blogEntry)
+	_, err := db.C(dbCollectionEntries).UpsertId(blogEntry.ObjId, blogEntry)
 	if err != nil {
 		ren.JSON(500, err)
 		return
 	}
 
-	// render the template using the result from the db
-	ren.HTML(200, "addBlogEntry", nil)
+	// show new or updated entry
+	ren.Redirect("/post/" + blogEntry.ObjId.Hex())
 }
 
 // Display empty form to write new blog entry
@@ -107,18 +104,17 @@ func EditBlogEntryForm(ren render.Render, db *mgo.Database, args martini.Params)
 	entryId := bson.ObjectIdHex(args["Id"])
 	var result dbBlogEntry
 
-	// Find Blogentry by Id (should be only one)
+	// Find Blogentry by Id
 	err := db.C("blogEntries").Find(bson.M{"_id": entryId}).One(&result)
 	if err != nil {
 		ren.JSON(500, err)
 		return
 	}
 
-	// render the template using the result from the db
 	ren.HTML(200, "editBlogEntry", result)
 }
 
-// Display prefilled form to edit existing blog entry
+// Delete entry
 func DeleteBlogEntry(ren render.Render, db *mgo.Database, args martini.Params) {
 	// validate the post id
 	if !bson.IsObjectIdHex(args["Id"]) {
