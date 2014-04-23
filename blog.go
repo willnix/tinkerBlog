@@ -169,6 +169,11 @@ func RSS(ren render.Render, db *mgo.Database) string {
 	// Load all Blogentries in the results slice
 	// (sorted descending by date)
 	err := db.C(dbCollectionEntries).Find(nil).Sort("-_written").All(&results)
+	if err != nil {
+		ren.JSON(500, err)
+		return ""
+	}
+
 	now := time.Now()
 	feed := &feeds.Feed{
 		Title:       "tinkerBlog",
@@ -178,18 +183,22 @@ func RSS(ren render.Render, db *mgo.Database) string {
 		Created:     now,
 	}
 
-	if err == nil {
-		feed.Items = []*feeds.Item{}
-		for i, _ := range results {
-			feed.Items = append(feed.Items,
-				&feeds.Item{
-					Title:       results[i].Title,
-					Link:        &feeds.Link{Href: "http://localhost:3000/post/" + results[i].ObjId.Hex()},
-					Description: results[i].Author,
-					Created:     results[i].Written,
-				})
-		}
+	feed.Items = []*feeds.Item{}
+	for i, _ := range results {
+		feed.Items = append(feed.Items,
+			&feeds.Item{
+				Title:       results[i].Title,
+				Link:        &feeds.Link{Href: "http://localhost:3000/post/" + results[i].ObjId.Hex()},
+				Description: results[i].Author,
+				Created:     results[i].Written,
+			})
 	}
+
 	atom, err := feed.ToAtom()
+	if err != nil {
+		ren.JSON(500, err)
+		return ""
+	}
+
 	return atom
 }
