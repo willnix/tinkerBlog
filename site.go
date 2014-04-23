@@ -41,6 +41,7 @@ func main() {
 	m.Get("/post/:Id", BlogEntry)
 	m.Get("/about", About)
 	m.Get("/impressum", Impressum)
+    m.Get("/rss",RSS)
 
 	// using sessionauth middleware when necessary
 	m.Get("/blog/add", sessionauth.LoginRequired, AddBlogEntryForm)
