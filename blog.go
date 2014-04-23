@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/go-martini/martini"
+	"github.com/gorilla/feeds"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
 	"github.com/russross/blackfriday"
-    "github.com/gorilla/feeds"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
@@ -165,32 +165,31 @@ func Impressum(ren render.Render) {
 }
 
 func RSS(ren render.Render, db *mgo.Database) string {
-    var results []dbBlogEntry
-    // Load all Blogentries in the results slice
-    // (sorted descending by date)
-    err := db.C(dbCollectionEntries).Find(nil).Sort("-_written").All(&results)
-    now := time.Now()
-    feed := &feeds.Feed {
-        Title:       "tinkerBlog",
-        Link:        &feeds.Link{Href: "http://localhost:3000/"},
-        Description: "longcat is long",
-        Author:      &feeds.Author{"kantorkel", "mail@example.xkcd"},
-        Created:     now,
-    }
+	var results []dbBlogEntry
+	// Load all Blogentries in the results slice
+	// (sorted descending by date)
+	err := db.C(dbCollectionEntries).Find(nil).Sort("-_written").All(&results)
+	now := time.Now()
+	feed := &feeds.Feed{
+		Title:       "tinkerBlog",
+		Link:        &feeds.Link{Href: "http://localhost:3000/"},
+		Description: "longcat is long",
+		Author:      &feeds.Author{"kantorkel", "mail@example.xkcd"},
+		Created:     now,
+	}
 
-    if err == nil {
-        feed.Items = []*feeds.Item{}
-        for i, _ := range results {
-            feed.Items = append(feed.Items,
-                &feeds.Item{
-                    Title:       results[i].Title,
-                    Link:        &feeds.Link{Href: "http://localhost:3000/post/" + results[i].ObjId.Hex()},
-                    Description: results[i].Author,
-                    Created:     results[i].Written,
-                })
-        }
-    }
-    atom, err := feed.ToAtom()
-    return atom;
+	if err == nil {
+		feed.Items = []*feeds.Item{}
+		for i, _ := range results {
+			feed.Items = append(feed.Items,
+				&feeds.Item{
+					Title:       results[i].Title,
+					Link:        &feeds.Link{Href: "http://localhost:3000/post/" + results[i].ObjId.Hex()},
+					Description: results[i].Author,
+					Created:     results[i].Written,
+				})
+		}
+	}
+	atom, err := feed.ToAtom()
+	return atom
 }
-
