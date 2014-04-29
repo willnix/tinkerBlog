@@ -1,5 +1,5 @@
 <div class="about ten columns offset-by-two">
-	<form action="//tinkerfool.org/blog/edit" method="POST" class="pure-form">
+	<form action="/blog/edit" method="POST" class="pure-form">
 		  <input type="hidden" name="id" value="{{.ObjId | formatId}}">
 	      <input type="text" name="title" value="{{.Title}}"/>
 	      <textarea class="monospace" name="text">{{.Text}}</textarea> 
