@@ -1,13 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
+	"time"
+
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
-	"html/template"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 // hacky solution to get session data during template evaluation
@@ -30,20 +32,30 @@ var templateFuncs = template.FuncMap{
 	"isUserAuthed": func() bool {
 		return false
 	},
+	"menuIsActive": func(route string) string {
+		return ""
+	},
 }
 
 // middleware to inject the session stuff
 func HelperFuncs() martini.Handler {
-	return func(r render.Render, user sessionauth.User, s sessions.Session) {
-		r.Template().Funcs(injectHelperFuncs(user, s))
+	return func(r render.Render, user sessionauth.User, s sessions.Session, route martini.Route) {
+		r.Template().Funcs(injectHelperFuncs(user, s, route))
 	}
 }
 
 // create the real template helpers
-var injectHelperFuncs = func(user sessionauth.User, s sessions.Session) template.FuncMap {
+var injectHelperFuncs = func(user sessionauth.User, s sessions.Session, r martini.Route) template.FuncMap {
 	templateFuncs["isUserAuthed"] = func() bool {
 		// use the user object defined outside, closures are awesome!
 		return user.IsAuthenticated()
 	}
+
+	templateFuncs["menuIsActive"] = func(route string) string {
+		fmt.Println("Asked Route:", route)
+		fmt.Println("Active Route:", r.GetName())
+		return ""
+	}
+
 	return templateFuncs
 }

@@ -42,8 +42,12 @@ func main() {
 	m.Use(martini.Static("assets"))
 
 	// Setup routing
-	m.Get("/", BlogEntryList)
-	m.Get("/post/:Id", BlogEntry)
+	m.Get("/", BlogEntryList).Name("BlogList")
+	m.Get("/post/:Id", BlogEntry).Name("BlogPost")
+	m.Get("/test", func(route martini.Route) string {
+		return route.GetName()
+	}).Name("Test")
+
 	m.Get("/rss", RSS)
 
 	m.Get("/about", func(ren render.Render) {
