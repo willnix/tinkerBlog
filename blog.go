@@ -8,8 +8,7 @@ import (
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/russross/blackfriday"
-
-	"github.com/cryptix/tinkerBlog/blog"
+	"github.com/willnix/tinkerBlog/blog"
 )
 
 // List all blog entries

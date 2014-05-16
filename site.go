@@ -3,12 +3,12 @@ package main
 import (
 	"html/template"
 
-	"github.com/cryptix/tinkerBlog/blog"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
+	"github.com/willnix/tinkerBlog/blog"
 )
 
 func main() {
