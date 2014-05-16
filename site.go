@@ -18,6 +18,7 @@ func main() {
 
 	store.Options(sessions.Options{
 		MaxAge: 0,
+		Path:   "/",
 	})
 	m.Use(sessions.Sessions("blogSession", store))
 	m.Use(sessionauth.SessionUser(GenerateAnonymousUser))
