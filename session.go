@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 
 	"code.google.com/p/go.crypto/scrypt"
 	"github.com/martini-contrib/render"
@@ -79,7 +78,14 @@ func (u *UserModel) GetById(id interface{}) error {
 	return nil
 }
 
-func ValidateLogin(session sessions.Session, postedUser UserModel, db *mgo.Database, ren render.Render, req *http.Request) {
+// HTTPHandlers
+
+func Logout(session sessions.Session, user sessionauth.User, ren render.Render) {
+	sessionauth.Logout(session, user)
+	ren.Redirect("/")
+}
+
+func ValidateLogin(session sessions.Session, postedUser UserModel, db *mgo.Database, ren render.Render) {
 	// load user  from database
 	user := UserModel{}
 	err := db.C(dbCollectionUser).Find(bson.M{"username": postedUser.Username}).One(&user)
@@ -91,6 +97,7 @@ func ValidateLogin(session sessions.Session, postedUser UserModel, db *mgo.Datab
 	//verify credentials
 	HashOfPostedPw, err := scrypt.Key([]byte(postedUser.Password), user.Salt, 16384, 8, 1, 32)
 	if err != nil || bytes.Compare(user.HashedPassword, HashOfPostedPw) != 0 {
+		fmt.Println("ValidateLogin - Login Failed")
 		ren.Redirect(sessionauth.RedirectUrl)
 		return
 	}
@@ -99,11 +106,15 @@ func ValidateLogin(session sessions.Session, postedUser UserModel, db *mgo.Datab
 	err = sessionauth.AuthenticateSession(session, &user)
 	if err != nil {
 		ren.JSON(500, err)
+		return
 	}
 
-	// return the user
-	params := req.URL.Query()
-	redirect := params.Get(sessionauth.RedirectParam)
-	ren.Redirect(redirect)
+	// TODO: Why is req.URL empty?...
+	// fmt.Println("ValidateLogin - RawQuery:", req.URL.RawQuery)
+	// params := req.URL.Query().Get(sessionauth.RedirectParam)
+	// fmt.Println("ValidateLogin - Params:", params)
+	// redirect := params.Get(sessionauth.RedirectParam)
+	// fmt.Println("Redirecting:", redirect)
+	ren.Redirect("/")
 	return
 }

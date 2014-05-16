@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 
+	"github.com/cryptix/tinkerBlog/blog"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
@@ -20,8 +21,8 @@ func main() {
 	})
 	m.Use(sessions.Sessions("blogSession", store))
 	m.Use(sessionauth.SessionUser(GenerateAnonymousUser))
-	sessionauth.RedirectUrl = "/new-login"
-	sessionauth.RedirectParam = "new-next"
+	sessionauth.RedirectUrl = "/user/login"
+	sessionauth.RedirectParam = "next"
 
 	m.Use(render.Renderer(render.Options{
 		Directory: "templates",
@@ -33,31 +34,44 @@ func main() {
 	// Middleware for mongodb connection
 	m.Use(Mongo())
 
+	blogEngine := blog.NewMgoBlog(mgoSession.DB(dbName))
+	m.MapTo(blogEngine, (*blog.Blogger)(nil))
+
 	// Setup static file serving
 	m.Use(martini.Static("assets"))
 
 	// Setup routing
 	m.Get("/", BlogEntryList)
 	m.Get("/post/:Id", BlogEntry)
-	m.Get("/about", About)
-	m.Get("/impressum", Impressum)
 	m.Get("/rss", RSS)
 
-	// using sessionauth middleware when necessary
-	m.Get("/blog/add", sessionauth.LoginRequired, AddBlogEntryForm)
-	// binding conveniently parses posted form data into a struct
-	m.Post("/blog/add", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), BlogEntrySubmit)
+	m.Get("/about", func(ren render.Render) {
+		ren.HTML(200, "about", nil)
+	})
+	m.Get("/impressum", func(ren render.Render) {
+		ren.HTML(200, "impressum", nil)
+	})
 
-	m.Get("/blog/edit/:Id", sessionauth.LoginRequired, EditBlogEntryForm)
-	m.Post("/blog/edit", sessionauth.LoginRequired, binding.Form(dbBlogEntry{}), BlogEntrySubmit)
+	// using sessionauth middleware for all protected routes
+	m.Group("/blog", func(r martini.Router) {
+		m.Get("/add", AddBlogEntryForm)
+		m.Get("/edit/:Id", EditBlogEntryForm)
 
-	m.Get("/blog/delete/:Id", sessionauth.LoginRequired, DeleteBlogEntry)
+		// binding conveniently parses posted form data into a struct
+		m.Post("/add", binding.Form(blog.Entry{}), BlogEntrySubmit)
+		m.Post("/edit", binding.Form(blog.Entry{}), BlogEntrySubmit)
 
-	m.Get("/new-login", LoginForm)
+		m.Get("/delete/:Id", DeleteBlogEntry)
+	}, sessionauth.LoginRequired)
 
-	m.Post("/new-login", binding.Bind(UserModel{}), ValidateLogin)
+	m.Group("/user", func(r martini.Router) {
+		m.Get("/login", func(ren render.Render) {
+			ren.HTML(200, "login", nil)
+		})
 
-	m.Get("/logout", sessionauth.LoginRequired, Logout)
+		m.Post("/login", binding.Bind(UserModel{}), ValidateLogin)
+		m.Get("/logout", sessionauth.LoginRequired, Logout)
+	})
 
 	m.Run()
 }
