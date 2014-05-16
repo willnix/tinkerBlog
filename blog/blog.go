@@ -1,9 +1,11 @@
 package blog
 
 import (
-	"labix.org/v2/mgo"
+	"net/http"
 	"time"
 
+	"github.com/martini-contrib/binding"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -12,10 +14,31 @@ import (
 type Entry struct {
 	ObjId   bson.ObjectId `bson:"_id,omitempty" form:"-"`
 	Id      string        `bson:"-" form:"id"`
-	Title   string        `bson:"title" form:"title"`
 	Author  string        `bson:"author,omitempty" form:"-"`
-	Text    string        `bson:"text" form:"text"`
 	Written time.Time     `bson:"written,omitempty" form:"-"`
+	Title   string        `bson:"title" form:"title" binding:"required"`
+	Text    string        `bson:"text" form:"text" binding:"required"`
+}
+
+func (e Entry) Validate(errors binding.Errors, req *http.Request) binding.Errors {
+
+	if len(e.Title) == 0 {
+		errors = append(errors, binding.Error{
+			FieldNames:     []string{"title"},
+			Classification: "IncompleteError",
+			Message:        "Title can't be empty",
+		})
+	}
+
+	if len(e.Text) == 0 {
+		errors = append(errors, binding.Error{
+			FieldNames:     []string{"text"},
+			Classification: "IncompleteError",
+			Message:        "Text can't be empty",
+		})
+	}
+
+	return errors
 }
 
 // default collection name

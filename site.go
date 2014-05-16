@@ -59,8 +59,8 @@ func main() {
 		m.Get("/edit/:Id", EditBlogEntryForm)
 
 		// binding conveniently parses posted form data into a struct
-		m.Post("/add", binding.Form(blog.Entry{}), BlogEntrySubmit)
-		m.Post("/edit", binding.Form(blog.Entry{}), BlogEntrySubmit)
+		m.Post("/add", binding.Form(blog.Entry{}), binding.ErrorHandler, BlogEntrySubmit)
+		m.Post("/edit", binding.Form(blog.Entry{}), binding.ErrorHandler, BlogEntrySubmit)
 
 		m.Get("/delete/:Id", DeleteBlogEntry)
 	}, sessionauth.LoginRequired)
