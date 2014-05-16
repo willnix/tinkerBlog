@@ -1,4 +1,3 @@
 ##TODO
-
-- [] Redirect after Login is borked
+- [ ] Redirect after Login is borked
 
