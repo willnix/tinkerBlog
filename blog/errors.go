@@ -4,4 +4,7 @@ import (
 	"errors"
 )
 
-var ErrBadObjectId = errors.New("error while validating entry ID")
+var (
+	ErrEntryNotFound = errors.New("No Blog Entry with that ID")
+	ErrBadObjectId   = errors.New("error while validating entry ID")
+)

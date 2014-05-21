@@ -41,27 +41,47 @@ func (e Entry) Validate(errors binding.Errors, req *http.Request) binding.Errors
 	return errors
 }
 
-// default collection name
-const dbCollectionName = "blogEntries"
+// defaults
+const (
+	blogCollName = "blogEntries"
+	blogDbName   = "blog"
+)
 
 type MgoBlog struct {
-	collectionName string
-
-	db *mgo.Database
+	dbName, collName string
+	s                *mgo.Session
 }
 
-func NewMgoBlog(db *mgo.Database) Blogger {
-	return MgoBlog{
-		db: db,
+func (m MgoBlog) getCollection() (*mgo.Collection, *mgo.Session) {
+	s := m.s.Clone()
 
-		collectionName: dbCollectionName,
-	}
+	return s.DB(m.dbName).C(m.collName), s
 }
 
-func NewMgoBlogWithCollectionName(db *mgo.Database, collName string) Blogger {
-	return MgoBlog{
-		db: db,
+type Options struct {
+	DbName         string
+	CollectionName string
+}
 
-		collectionName: collName,
+func NewMgoBlog(session *mgo.Session, o *Options) Blogger {
+	b := MgoBlog{s: session}
+
+	if o == nil {
+		b.collName = blogCollName
+		b.dbName = blogDbName
+	} else {
+		if o.CollectionName != "" {
+			b.collName = o.CollectionName
+		} else {
+			b.collName = blogCollName
+		}
+
+		if o.DbName != "" {
+			b.dbName = o.DbName
+		} else {
+			b.dbName = blogDbName
+		}
 	}
+
+	return b
 }

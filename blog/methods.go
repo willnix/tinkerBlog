@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
@@ -8,8 +9,10 @@ import (
 // LatestEntries loads all Blogentries in the results slice
 // (sorted descending by date)
 func (b MgoBlog) LatestEntries() (entries []*Entry, err error) {
+	coll, s := b.getCollection()
+	defer s.Close()
 
-	err = b.db.C(b.collectionName).Find(nil).Sort("-_written").All(&entries)
+	err = coll.Find(nil).Sort("-_written").All(&entries)
 	if err != nil {
 		return nil, err
 	}
@@ -22,13 +25,21 @@ func (b MgoBlog) FindById(id string) (e *Entry, err error) {
 		return nil, ErrBadObjectId
 	}
 
+	coll, s := b.getCollection()
+	defer s.Close()
+
 	qry := bson.M{"_id": bson.ObjectIdHex(id)}
-	err = b.db.C(b.collectionName).Find(qry).One(&e)
-	if err != nil {
+	err = coll.Find(qry).One(&e)
+	switch {
+	case err == nil:
+		return
+
+	case err == mgo.ErrNotFound:
+		return nil, ErrEntryNotFound
+
+	default:
 		return nil, err
 	}
-
-	return
 }
 
 func (b MgoBlog) Delete(id string) error {
@@ -38,8 +49,11 @@ func (b MgoBlog) Delete(id string) error {
 	}
 	entryId := bson.ObjectIdHex(id)
 
+	coll, s := b.getCollection()
+	defer s.Close()
+
 	// Delete entry
-	return b.db.C(b.collectionName).Remove(bson.M{"_id": entryId})
+	return coll.Remove(bson.M{"_id": entryId})
 }
 
 func (b MgoBlog) Save(e *Entry) error {
@@ -53,11 +67,13 @@ func (b MgoBlog) Save(e *Entry) error {
 		// set creation datetime
 		e.Written = time.Now()
 	}
+	coll, s := b.getCollection()
+	defer s.Close()
 
 	// building the update bson manually is necessery because mgo/bson irgnores
 	// the "ommitempty" tag and we don't want to update timestamp and username.
 	// this requires MongoDB 2.4!
-	_, err := b.db.C("blogEntries").UpsertId(e.ObjId, bson.M{
+	_, err := coll.UpsertId(e.ObjId, bson.M{
 		"$setOnInsert": bson.M{
 			"_id":     e.ObjId,
 			"author":  e.Author,
