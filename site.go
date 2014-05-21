@@ -35,7 +35,7 @@ func main() {
 	// Middleware for mongodb connection
 	m.Use(Mongo())
 
-	blogEngine := blog.NewMgoBlog(mgoSession.DB(dbName))
+	blogEngine := blog.NewMgoBlog(mgoSession, &blog.Options{dbName, dbCollectionEntries})
 	m.MapTo(blogEngine, (*blog.Blogger)(nil))
 
 	// Setup static file serving

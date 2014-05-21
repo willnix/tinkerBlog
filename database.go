@@ -17,6 +17,7 @@ const (
 	dbName = "blog"
 
 	dbCollectionUser     = "blogUsers"
+	dbCollectionEntries  = "blogEntries"
 	dbCollectionSessions = "blogSessions"
 )
 
