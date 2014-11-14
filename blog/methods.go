@@ -28,7 +28,7 @@ func (b MgoBlog) FindById(id string) (e *Entry, err error) {
 	coll, s := b.getCollection()
 	defer s.Close()
 
-	qry := bson.M{"_id": bson.ObjectIdHex(id)}
+	qry := bson.M{"id": bson.ObjectIdHex(id)}
 	err = coll.Find(qry).One(&e)
 	switch {
 	case err == nil:
@@ -53,7 +53,7 @@ func (b MgoBlog) Delete(id string) error {
 	defer s.Close()
 
 	// Delete entry
-	return coll.Remove(bson.M{"_id": entryId})
+	return coll.Remove(bson.M{"id": entryId})
 }
 
 func (b MgoBlog) Save(e *Entry) error {
@@ -75,7 +75,7 @@ func (b MgoBlog) Save(e *Entry) error {
 	// this requires MongoDB 2.4!
 	_, err := coll.UpsertId(e.ObjId, bson.M{
 		"$setOnInsert": bson.M{
-			"_id":     e.ObjId,
+			"id":     e.ObjId,
 			"author":  e.Author,
 			"written": e.Written,
 		},
